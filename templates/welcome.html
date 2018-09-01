@@ -1,0 +1,70 @@
+{% extends 'layout.html'%}
+
+{% block body %}	
+
+{% if login == "False" %}
+
+
+<form action='/login' method="POST">
+	<p> username <input type="text" name="username" placeholder="username"></p>
+	<p>password <input type="password" name="password" placeholder="password"></p>
+	
+	<input type="submit" value ="login">
+
+<br><br>
+</form>
+
+<p>Have no account? </p><br>
+
+<form action='/signup' method="POST" id="signup">
+	<p> username	      <input type="text" name="username" placeholder="username"></p>
+	<p>password 	      <input type="password" name="password" ></p>
+	<!--<p>Re-enter password  <input type="password" name="rpassword"> </p>-->
+	<p>e-mail        <input type="text" name="email" placeholder="email"></p>
+	<p> Buyer<input type="radio" name = "account_type" value="buyer"></p><br>
+	<p>Seller<input type="radio" name = "account_type" value="seller"></p><br>
+	<input type="submit" value ="sign up">
+</form>
+
+
+{% else %}
+
+<p>Hello!!!,{{ session['username'] }}, you have logged in as a {{ session['account_type'] }} </p>
+<br>
+
+
+	{% if session['account_type']=="seller" %}
+
+	<form action="/productspage name="products">
+
+	
+		<input type="submit" name="products" value="add products">
+	</form><br>
+	{% endif %}
+
+<form action="/products" name="products" method="POST">
+<input type="submit" name="products" value="see products already added">
+</form><br>
+
+
+
+{% endif %}
+
+{% endblock %}
+<!--
+{% if password != rpassword %}
+
+<script>
+	 
+
+
+	document.getElementById("signup").onsubmit = greet(){ 
+
+		alert("password fields don't match");
+	}
+
+</script>
+
+{% endif %}
+
+-->

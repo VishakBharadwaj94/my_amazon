@@ -1,0 +1,22 @@
+<html>
+<head>
+</head>
+<body>
+
+<ul>
+
+{% for dict in cart %}
+<ul>
+<b><li>name:{{ dict["product name"] }}</li></b><br>
+<li>price: {{ dict["price"] }}</li><br>
+<li>description: {{ dict["description"] }}</li><br>
+<li>Seller Name: {{ dict["username"] }}</li><br>
+		
+</ul>
+
+{% endfor %}
+
+<br><a href = "/logout">logout</a><br>
+<br><a href="/products">Back to products</a>
+
+</html>
