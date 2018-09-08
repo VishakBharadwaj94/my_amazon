@@ -1,6 +1,6 @@
 from flask import Flask, request,render_template,redirect,url_for,session
-from models.user_model import user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details#search_products_in_page
-
+from models.user_model import user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details,search_products_in_page
+from data import articles
 import pdb
 
 app = Flask(__name__)
@@ -8,16 +8,13 @@ app = Flask(__name__)
 app.secret_key = 'string'
 
 
+
+
+
 @app.route("/")
-
-def home1():
-
-	return render_template("home.html")
-
-
 @app.route("/home")
 
-def home2():
+def home():
 
 	return render_template("home.html")
 
@@ -30,7 +27,7 @@ def welcome():
 	if ("user_id" in session.keys()):
 		
 		
-		return render_template('welcome.html',login ="True")
+		return render_template('loginsuccess.html')
 		
 	else :
 
@@ -78,9 +75,10 @@ def login():
 
 	else:
 
-		if bool(session.get('user_id')) is True:
-
-			return render_template("welcome.html",login ="True")
+		if ("user_id" in session.keys()):
+		
+		
+			return render_template('loginsuccess.html')
 
 		else:
 
@@ -104,7 +102,7 @@ def signup():
 
 	if user_info["account_type"]=="buyer":
 
-		user_info["cart"]={}
+		user_info["cart"]=[]
 
 	if check_user(user_info["username"]) is None:
 
@@ -112,16 +110,16 @@ def signup():
 		if(results is True):
 
 			session['user_id'] = str(user_info['_id'])	
-		return 'successfully saved. go back and sign in to get to your home page'
+		return redirect(url_for('welcome'))
 		
 	else:	
 
 		return 'the username already exists.please go back and enter another username'
 
 
-@app.route("/productspage")
+@app.route("/addproductspage",methods=["POST"])
 
-def productspage():
+def addproductspage():
 	return render_template('addproducts.html')
 
 
@@ -138,7 +136,7 @@ def addproducts():
 	return 'product added'
 
 
-@app.route("/products", methods=['POST'])
+@app.route("/products", methods=['POST','GET'])
 
 def products():
 	if session["account_type"] =="seller":
@@ -170,7 +168,7 @@ def search_products():
 def logout():
    # remove the username from the session if it is there
    session.pop('user_id', None)
-   return redirect(url_for('home1'))
+   return redirect(url_for('home'))
 
 
 
@@ -181,8 +179,8 @@ def logout():
 def add_to_cart():
 	
 	product_id =request.form["product_id"]
+	
 	quantity=int(request.form["quantity"])
-	#import pdb; pdb.set_trace()
 	update_cart_details(session["user_id"],product_id,quantity)
 	
 	return redirect(url_for("cart_page"))
@@ -190,8 +188,23 @@ def add_to_cart():
 @app.route('/cart_page')
 def cart_page():
 	cart= cart_details(session["user_id"])
-	print(cart)
 	return render_template("cart_page.html",cart=cart)
+
+@app.route('/articles')
+def Articles():
+
+	Articles=articles()
+
+	return render_template("articles.html",articles=Articles)
+
+@app.route('/article/<string:id>')
+
+# note the change in the decorator above, article not articles
+#the ID will be of type string and be fed into the url 
+
+def Article(id):
+
+	return render_template("article.html",id=id)
 
 
 if(__name__ == "__main__"):

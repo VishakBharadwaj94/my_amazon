@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Add prodcuts </title>
-</head>
-<body>
-<form action='/addproducts' method="POST">
-	<p> product name <input type="text" name="name" placeholder="product name"></p>
-	<p>product price <input type="text" name="price" placeholder="price"></p>
-	<p>product description <input type="text" width="300%" name="product_description" placeholder="describe product... "></p>
+{% extends 'layout.html' %}
+
+
+{% block body %}
+<form action='/addproducts' name="productspage" method="POST">
+	<p> product name <input type="text" name="name" placeholder="product name" autofocus autocomplete="off"></p>
+	<p>product price <input type="text" name="price" placeholder="price" autocomplete="off"></p>
+	<p>product description <input type="text" width="300%" name="product_description" placeholder="describe product... " autocomplete="off"></p>
 	
-	<input type="submit" value ="Add prodcut">
+	<input type="submit" value ="Add prodcut" name="productspage">
 </form>
-</body>
-</html>
+
+{% endblock body %}

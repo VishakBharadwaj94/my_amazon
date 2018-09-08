@@ -1,16 +1,19 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<title>Mini Amazon</title>
-</head>
-<body>
+{% extends 'layout.html'%}
 
-{% for dict in search %} 
+{% block body %}
+
+	{% for dict in search %} 
 	<ul>
 	<b><li>name:{{ dict["product name"] }}</li></b><br>
 		<li>prce: {{ dict["price"] }}</li><br>
 		<li>Description: {{ dict["description"] }}</li><br>
 	</ul>
-{% endfor %}	
-</body>
-</html>
+	{% if session['account_type']=="buyer" %}
+		<form action="/add_to_cart" method="POST">
+		<input name="product_id" type="hidden" value="{{dict['_id']}}">
+		<input type="number" name="quantity" min="1" max="10" value="1">		
+		<input type=submit value="Add to cart"> <br>	
+		</form>
+	{% endif %}
+	{% endfor %}	
+{% endblock %}

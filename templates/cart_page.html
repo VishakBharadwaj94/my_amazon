@@ -1,22 +1,18 @@
-<html>
-<head>
-</head>
-<body>
+{% extends 'layout.html' %}
 
-<ul>
-
-{% for dict in cart %}
-<ul>
-<b><li>name:{{ dict["product name"] }}</li></b><br>
-<li>price: {{ dict["price"] }}</li><br>
-<li>description: {{ dict["description"] }}</li><br>
-<li>Seller Name: {{ dict["username"] }}</li><br>
+{% block body%}
+	{% for dict in cart %}
+	<ul>
+	<b><li>name:{{ dict["product name"] }}</li></b><br>
+	<li>price: {{ dict["price"] }}</li><br>
+	<li>description: {{ dict["description"] }}</li><br>
+	<li>Seller Name: {{ dict["username"] }}</li><br>
 		
-</ul>
+	</ul>
 
-{% endfor %}
+	{% endfor %}
 
 <br><a href = "/logout">logout</a><br>
 <br><a href="/products">Back to products</a>
 
-</html>
+{% endblock body %}

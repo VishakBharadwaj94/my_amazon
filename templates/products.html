@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html>
-<head>Welcome to Amazon!!!!</head>
-	<title>products</title>
+{% extends 'layout.html' %}
+
+{% block body %}
 
 
-
-<body>
 {% if session['account_type']=="buyer" %}
-
+<div>
 <form action="/searchproducts" method="POST">
-	<p>search <input type="text" name="search" placeholder="enter keywords here..."></p>
-	<p><input type="submit" name="search" value="search"></p>
+	 <input type="text" name="search" placeholder="enter keywords here..."></p>
+	 <input type="submit" name="search" value="search">
 </form>	
+</div>
 {% endif %}
 <ul>
 {% for dict in result %}
@@ -34,6 +32,5 @@
 <a href ="/cart_page">check your cart</a><br>
 {% endif %}
 <a href = "/logout">logout</a>
-
-
-</html>
+ 
+{% endblock %}

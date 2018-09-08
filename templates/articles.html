@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+
+
+	<ul class="list-group"> <!-- class is from bootstrap -->
+		{% for article in articles %}
+	<li class="list-group-item"><a href="article/{{article.id}}">{{article.title}}</a></li>
+
+
+
+	
+	{% endfor %}
+
+{% endblock body%}

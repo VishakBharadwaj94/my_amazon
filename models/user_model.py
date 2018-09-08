@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-from fuzzywuzzy import fuzz
+
 
 client = MongoClient()
 db = client['dummy_amazon']
@@ -77,7 +77,7 @@ def cart_details(user_id):
 	
 	filter_query1 = {"_id":ObjectId(user_id)}
 	result = db["users"].find_one(filter_query1)
-	cart_list=result["cart_details"]
+	cart_list=result["cart"]
 
 	for item in cart_list:
 		filter_query2 = {"_id":ObjectId(item["product_id"])}
@@ -85,11 +85,32 @@ def cart_details(user_id):
 	return results	
 
 def update_cart_details(user_id,product_id,quantity):
-    user_info = db["users"].find_one({"_id":ObjectId(user_id)})
-    cart_dict = user_info["cart"]
-    db["users"].update({"_id" : ObjectId(user_id)},{"$inc" : {"cart."+product_id : quantity}})
+	user_info = db["users"].find_one({"_id":ObjectId(user_id)})
+	cart_dict = user_info.get("cart")
+	position= None
 
-    return True
+	if bool(cart_dict) is True:
+		
+		for dict1 in cart_dict:
+
+			if dict1["product_id"]==product_id:
+
+				position=cart_dict.index(dict1)
+
+		if bool(position) is True:
+
+
+			db["users"].update({"_id" : ObjectId(user_id),"cart.product_id":product_id},{ '$inc':{ 'cart.$.quantity':quantity}})
+		
+
+		else:
+
+			db["users"].update({"_id":ObjectId(user_id)},{"$addToSet":{"cart":{"$each":[{"product_id":product_id,"quantity":quantity}]}}})
+	else:
+
+		db["users"].update({"_id":ObjectId(user_id)},{"$addToSet":{"cart":{"$each":[{"product_id":product_id,"quantity":quantity}]}}})
+	
+	return True
 
 def remove_item(product_id,user_id):
     user_info = db['users'].find_one({"_id":ObjectId(user_id)})
@@ -99,24 +120,9 @@ def remove_item(product_id,user_id):
 
     return True		 
 
-#def search_products_in_page(search):
+def search_products_in_page(search):
 
-#	result=[]
-#	a=db["products"].find_one()
-
-#	for dict1 in a:
-
-#		if fuzz.ratio(dict1["product name"],search)>80:
-
-#		so what has to be done first is the comparison and then return the output
-
-#	return result
-
-#	result=[]
-#	filter_query = {"product name" : search}
-#	result = db['products'].find(filter_query)
-#	return result
-
-
-
-
+	result=[]
+	filter_query = {"product name" : search}
+	result = db['products'].find(filter_query)
+	return result
