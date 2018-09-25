@@ -2,8 +2,6 @@
 
 {% block body %}	
 
-{% if login == "False" %}
-
 <h4>Log-in here!</h4>
 <br>
 <form action='/login' method="POST">
@@ -15,19 +13,7 @@
  
 </form>
 <br><br>
-<h4>Have no account? Then sign-up! </h4><br>
-
-<form action='/signup' method="POST" id="signup">
-	<p><input type="text" name="username" placeholder="enter username..." autocomplete="off"></p>
-	<p><input type="password" name="password" placeholder="enter password..."></p>
-	<!--<p>Re-enter password  <input type="password" name="rpassword"> </p>-->
-	<p><input type="text" name="email" placeholder="enter email" autocomplete="off"></p>
-	<p> Buyer<input type="radio" name = "account_type" value="buyer" ></p><br>
-	<p>Seller<input type="radio" name = "account_type" value="seller"></p><br>
-	<input type="submit" value ="sign up">
-</form>
-
-{% endif %}
+<h4>Have no account? Then <a href="/register">register</a>!</h4>
 
 {% endblock %}
 

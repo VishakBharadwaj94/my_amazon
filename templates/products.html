@@ -22,6 +22,7 @@
 		{% if session['account_type']=="buyer" %}
 		<form action="/add_to_cart" method="POST">
 		<input name="product_id" type="hidden" value="{{dict['_id']}}">
+		<input type="hidden" name="price" value="{{dict['price']}}">
 		<input type="number" name="quantity" min="1" max="10" value="1">		
 		<input type=submit value="Add to cart"> <br>	
 		</form>

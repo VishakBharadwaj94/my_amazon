@@ -1,15 +1,15 @@
-from flask import Flask, request,render_template,redirect,url_for,session
+from flask import Flask, request,render_template,redirect,url_for,session,flash,logging
+from wtforms import Form,StringField,PasswordField,TextAreaField,RadioField,validators
+from passlib.hash import sha256_crypt
 from models.user_model import user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details,search_products_in_page
 from data import articles
-import pdb
+
+#config mysql
+
 
 app = Flask(__name__)
 
-app.secret_key = 'string'
-
-
-
-
+app.config['SECRET_KEY']='hello'
 
 @app.route("/")
 @app.route("/home")
@@ -45,6 +45,61 @@ def about():
 def contact():
 
 	return render_template("contact.html")
+
+
+#
+
+#follow the below format in wtforms, 1st create a class for every form needed
+
+class RegistrationForm(Form):
+
+	
+	name = StringField('Name',[validators.Length(min=4,max=25)])
+	username = StringField('Username',[validators.Length(min=4,max=25)])
+	email = StringField('email',[validators.Length(min=6,max=30)])
+	password = PasswordField('Password',[
+		validators.Length(min=4,max=25),
+		validators.DataRequired(),
+		validators.EqualTo('confirm',message="Passwords don't match!")
+		])
+	confirm = PasswordField('Confirm Password')
+	account_type = RadioField('Account Type',choices=[('buyer','Buyer'),('seller','Seller')])
+
+
+@app.route("/register",methods=['GET','POST'])
+
+def register():
+
+	form = RegistrationForm(request.form)
+	if request.method == 'POST' and form.validate():
+		user_info={}
+
+		user_info["name"] = form.name.data
+		user_info["username"] = form.username.data
+		user_info["email"] = form.email.data
+		user_info["account_type"]=form.account_type.data
+		user_info["password"] = sha256_crypt.encrypt(str(form.password.data))
+
+		session["username"]=user_info["name"]
+		session["account_type"]=user_info["account_type"]
+
+		if user_info["account_type"]=="buyer":
+
+			user_info["cart"]=[]
+
+		if check_user(user_info["username"]) is None:
+
+			results=user_signup(user_info)
+			if(results is True):
+
+				session['user_id'] = str(user_info['_id'])
+			return redirect(url_for('welcome'))
+		
+		else:	
+
+			return 'the username already exists.please go back and enter another username'
+	 
+	return render_template("register.html",form=form)
 
 
 
@@ -84,37 +139,6 @@ def login():
 
 			return render_template("welcome.html",login ="False")
 
-
-
-
-@app.route('/signup',methods=["POST"])
-def signup():
-	user_info={}
-	user_info["username"] = request.form["username"]
-	user_info["password"] = request.form["password"]
-	#rpassword=request.form["rpassword"]
-	user_info["email"] =  request.form["email"]
-	user_info["account_type"] = request.form["account_type"]
-
-	
-
-
-
-	if user_info["account_type"]=="buyer":
-
-		user_info["cart"]=[]
-
-	if check_user(user_info["username"]) is None:
-
-		results=user_signup(user_info)
-		if(results is True):
-
-			session['user_id'] = str(user_info['_id'])	
-		return redirect(url_for('welcome'))
-		
-	else:	
-
-		return 'the username already exists.please go back and enter another username'
 
 
 @app.route("/addproductspage",methods=["POST"])
@@ -179,16 +203,17 @@ def logout():
 def add_to_cart():
 	
 	product_id =request.form["product_id"]
-	
 	quantity=int(request.form["quantity"])
-	update_cart_details(session["user_id"],product_id,quantity)
-	
+	price=int(request.form["price"])
+	session["order_total"]=update_cart_details(session["user_id"],product_id,quantity,price)
+
 	return redirect(url_for("cart_page"))
 
 @app.route('/cart_page')
 def cart_page():
 	cart= cart_details(session["user_id"])
-	return render_template("cart_page.html",cart=cart)
+	#import pdb; pdb.set_trace()
+	return render_template("cart_page.html",cart=cart,order_total=session["order_total"])
 
 @app.route('/articles')
 def Articles():

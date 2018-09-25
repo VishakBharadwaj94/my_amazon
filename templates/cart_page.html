@@ -7,10 +7,13 @@
 	<li>price: {{ dict["price"] }}</li><br>
 	<li>description: {{ dict["description"] }}</li><br>
 	<li>Seller Name: {{ dict["username"] }}</li><br>
+	<li>Quantity</li>
 		
 	</ul>
 
 	{% endfor %}
+
+	<b>Total Price </b> : {{ session["order_total"] }}
 
 <br><a href = "/logout">logout</a><br>
 <br><a href="/products">Back to products</a>

@@ -6,16 +6,14 @@ client = MongoClient()
 db = client['dummy_amazon']
 
 
-
 def user_signup(user_info):
 	#save user info dictionary inside mongo
-
-
 	results = db['users'].insert_one(user_info)
 
 	return True 
 
 def check_user(username):
+	
 	filter_query = {'username' :username}
 	results= db['users'].find(filter_query)
 
@@ -78,39 +76,46 @@ def cart_details(user_id):
 	filter_query1 = {"_id":ObjectId(user_id)}
 	result = db["users"].find_one(filter_query1)
 	cart_list=result["cart"]
+	total_price=None
 
 	for item in cart_list:
 		filter_query2 = {"_id":ObjectId(item["product_id"])}
 		results.append(db["products"].find_one(filter_query2))
+
 	return results	
 
-def update_cart_details(user_id,product_id,quantity):
+def update_cart_details(user_id,product_id,quantity,price):
+
 	user_info = db["users"].find_one({"_id":ObjectId(user_id)})
 	cart_dict = user_info.get("cart")
-	position= None
-
-	if bool(cart_dict) is True:
+	product_index = None
+	total = 0
+	
 		
-		for dict1 in cart_dict:
+	for dict1 in cart_dict:
 
-			if dict1["product_id"]==product_id:
+		if dict1["product_id"]==product_id:
 
-				position=cart_dict.index(dict1)
+			product_index=cart_dict.index(dict1) + 1
 
-		if bool(position) is True:
+	if bool(product_index) == True:
 
 
-			db["users"].update({"_id" : ObjectId(user_id),"cart.product_id":product_id},{ '$inc':{ 'cart.$.quantity':quantity}})
+		db["users"].update({"_id" : ObjectId(user_id),"cart.product_id":product_id},{ '$inc':{ 'cart.$.quantity':quantity}})
 		
 
-		else:
-
-			db["users"].update({"_id":ObjectId(user_id)},{"$addToSet":{"cart":{"$each":[{"product_id":product_id,"quantity":quantity}]}}})
 	else:
 
-		db["users"].update({"_id":ObjectId(user_id)},{"$addToSet":{"cart":{"$each":[{"product_id":product_id,"quantity":quantity}]}}})
+		db["users"].update({"_id":ObjectId(user_id)},{"$addToSet":{"cart":{"$each":[{"product_id":product_id,"quantity":quantity,"price":price }]}}})
 	
-	return True
+	user_info = db["users"].find_one({"_id":ObjectId(user_id)})	
+	cart_dict = user_info.get("cart")
+
+	for dict1 in cart_dict:
+
+		total+=dict1["price"]*dict1["quantity"]
+
+	return total
 
 def remove_item(product_id,user_id):
     user_info = db['users'].find_one({"_id":ObjectId(user_id)})
