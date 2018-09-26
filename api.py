@@ -4,9 +4,6 @@ from passlib.hash import sha256_crypt
 from models.user_model import user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details,search_products_in_page
 from data import articles
 
-#config mysql
-
-
 app = Flask(__name__)
 
 app.config['SECRET_KEY']='hello'
@@ -19,19 +16,20 @@ def home():
 	return render_template("home.html")
 
 
-
+@app.route("/dashboard")
 @app.route("/welcome")
-def welcome():
+def dashboard():
 
 
 	if ("user_id" in session.keys()):
 		
 		
-		return render_template('loginsuccess.html')
+		return render_template('dashboard.html')
+
 		
 	else :
 
-		return render_template('welcome.html',login ="False")
+		return render_template('login.html')
 
 
 @app.route("/about")
@@ -46,8 +44,6 @@ def contact():
 
 	return render_template("contact.html")
 
-
-#
 
 #follow the below format in wtforms, 1st create a class for every form needed
 
@@ -90,61 +86,72 @@ def register():
 		if check_user(user_info["username"]) is None:
 
 			results=user_signup(user_info)
-			if(results is True):
+			if(results[0] is True):
 
-				session['user_id'] = str(user_info['_id'])
-			return redirect(url_for('welcome'))
+				session['user_id'] = str(results[1])
+				app.logger.info("SIGNUP SUCCESSFUL")
+			return redirect(url_for('dashboard'))
 		
 		else:	
 
 			return 'the username already exists.please go back and enter another username'
-	 
-	return render_template("register.html",form=form)
+	
+	if ("user_id" in session.keys()):
+
+		return 'You can\'t register while you\'re logged in. Go Back'
+	else:
+
+		return render_template("register.html",form=form)
 
 
 
 @app.route("/login", methods=['GET','POST'])
 
 def login():
+	
+	#wtforms not needed here
 
 	if request.method == 'POST':
 
 		inbound_username = request.form['username']
 		existing_user = search_user_by_username(inbound_username)
 		if (existing_user is None):
-			return 'you have to signup first'
+			app.logger.info("NO USER")
+			error="Username or Password is incorrect!"
+			return render_template('login.html',error=error)
 
-		elif(request.form['password']==existing_user['password']):
-			print ("login successfull, redirecting to products page")
+		elif(sha256_crypt.verify(request.form['password'],existing_user['password'])):
+			app.logger.info("PASSWORD MATCHED,LOGGING IN")
 		
 			session['user_id'] = str(existing_user['_id'])
 			session['account_type']=existing_user['account_type']
 			session['username']=existing_user['username']
 		
 
-			return redirect(url_for("welcome"))
+			return redirect(url_for('dashboard'))
 
 
 		else: 
-			return render_template('error.html', message= 'username or password incorrect')
+			app.logger.info("WRONG PASSWORD")
+			error="Username or Password is incorrect!"
+			return render_template('login.html',error=error)
 
-	else:
+	
 
-		if ("user_id" in session.keys()):
+	if ("user_id" in session.keys()):
 		
 		
-			return render_template('loginsuccess.html')
+		return render_template('dashboard.html')
 
-		else:
-
-			return render_template("welcome.html",login ="False")
-
+	
+	return render_template('login.html')
 
 
 @app.route("/addproductspage",methods=["POST"])
 
 def addproductspage():
 	return render_template('addproducts.html')
+
 
 
 @app.route('/addproducts', methods=["POST"])
@@ -212,7 +219,6 @@ def add_to_cart():
 @app.route('/cart_page')
 def cart_page():
 	cart= cart_details(session["user_id"])
-	#import pdb; pdb.set_trace()
 	return render_template("cart_page.html",cart=cart,order_total=session["order_total"])
 
 @app.route('/articles')

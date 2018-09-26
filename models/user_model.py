@@ -9,8 +9,10 @@ db = client['dummy_amazon']
 def user_signup(user_info):
 	#save user info dictionary inside mongo
 	results = db['users'].insert_one(user_info)
-
-	return True 
+	filter_query = {'username' :user_info['username']}
+	results= db['users'].find_one(filter_query)
+	
+	return (True,results['_id']) 
 
 def check_user(username):
 	

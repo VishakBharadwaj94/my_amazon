@@ -1,21 +1,33 @@
-{% extends 'layout.html'%}
+{% extends 'layout.html' %}
 
-{% block body %}	
+{% block body %}
 
-<h4>Log-in here!</h4>
+
+
+<p>Hello!!!,{{ session['username'] }}, you have logged in as a {{ session['account_type'] }} </p>
 <br>
-<form action='/login' method="POST">
-	<p><input type="text" name="username" placeholder="enter username here..." autofocus autocomplete="off"></p>
-	<p><input type="password" name="password" placeholder="enter password..."></p>
-	
-	<input type="submit" value ="login">
 
- 
-</form>
-<br><br>
-<h4>Have no account? Then <a href="/register">register</a>!</h4>
+
+	{% if session['account_type']=="seller" %}
+
+	<form action="/addproductspage" name="products" method="POST">
+
+	
+		<input type="submit" name="products" value="add products">
+	</form><br>
+	
+
+<form action="/products" name="products" method="POST">
+<input type="submit" name="products" value="see products already added">
+</form><br>
+
+	{% else %}
+
+<form action="/products" name="products" method="POST">
+<input type="submit" name="products" value="see products">
+</form><br>
+
+
+	{% endif %}
 
 {% endblock %}
-
-
-
