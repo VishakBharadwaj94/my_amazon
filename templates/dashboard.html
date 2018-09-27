@@ -4,30 +4,33 @@
 
 <h1>Dashboard</h1>
 
-	<h3>
-	Welcome {{ session['username'] }} 
-	</h3>
-	<h3>
-	You are now Logged in as {{ session['account_type'] }} </h3>
-	</h3>
+	
+	<h3>Welcome <b>{{ session['username'] }}!!</b></h3>
+
+	<br>
+	<br>
+
+	<h4>You are now Logged in as <b>{{ session['account_type'] }}</b>. </h4>
+
+	<br>
+	<br>
+	<br>
+	<br>
+	<br>
 
 	{% if session['account_type']=="seller" %}
-
 	<form action="/addproductspage" name="products" method="POST">
-
-	
-		<input type="submit" name="products" value="add products">
-	</form><br>
-	
-
+		<button type="submit" class="btn btn-primary"> Add New Product    </button>
+	</form>
+	<br>
 	<form action="/products" name="products" method="POST">
-	<input type="submit" name="products" value="see products already added">
+	<button type="submit" class="btn btn-primary"> See added Products </button>
 	</form><br>
 
 	{% else %}
 
 	<form action="/products" name="products" method="POST">
-	<input type="submit" name="products" value="see products">
+	<button type="submit" class="btn btn-primary"> Buy Products </button>
 	</form><br>
 
 

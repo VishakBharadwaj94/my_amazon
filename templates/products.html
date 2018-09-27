@@ -4,21 +4,32 @@
 
 
 {% if session['account_type']=="buyer" %}
-<div>
-<form action="/searchproducts" method="POST">
-	 <input type="text" name="search" placeholder="enter keywords here..."></p>
-	 <input type="submit" name="search" value="search">
-</form>	
+<form name ="search" action='/searchproducts' method="POST" >
+<div class="form-group"  >
+			<label>Search Products</label>
+			<input name="search" class = "form-control" placeholder="enter keywords...">
 </div>
+	<button type="submit" class="btn btn-primary"> Search </button>
+</form>
 {% endif %}
 <ul>
+{% if isproducts=='no' %}
+	{% if session['account_type']=='buyer' %}
+<h2>There are no products on sale yet!</h2>
+	{% endif %}
+<h2>You have not added any products yet!</h2>
+<form action='/addproductspage' name="productspage" method="POST">
+<button type="submit" class="btn btn-primary"> Add Product </button>
+</form>
+{% endif %}
+{% if result %}
 {% for dict in result %}
 <br>
 	<ul class="list-group">
-		<li class="list-group-item">name        :<b>{{ dict["product name"] }}</li></b>
-		<li class="list-group-item">price       :<b>{{ dict["price"] }}</b></li>
-		<li class="list-group-item">description :{{ dict["description"] }}</li>
-		<li class="list-group-item">Seller name : {{ dict["username"] }}</li>
+	<b><li class="list-group-item"> Product :{{ dict["product name"] }}</li></b>
+	<li class="list-group-item"><b>Price:</b> {{ dict["price"] }}<br><br>
+	<b>Description :</b> {{ dict["description"] }}<br><br>
+	<b>Seller Name :</b> {{ dict["username"] }}<br><br>
 		{% if session['account_type']=="buyer" %}
 		<form action="/add_to_cart" method="POST">
 		<input name="product_id" type="hidden" value="{{dict['_id']}}">
@@ -26,12 +37,24 @@
 		<input type="number" name="quantity" min="1" max="10" value="1">		
 		<input type=submit value="Add to cart"> <br>	
 		</form>
+		{% else%}
+		<form action="/remove" method="POST">
+			<input name="product_id" type="hidden" value="{{dict['_id']}}">
+			<input type="submit" name="product_id" value="Remove Product">
+		</form>
 		{% endif %}
 	</ul>
 {% endfor %}
-{% if session['account_type']=="buyer" %}
-<a href ="/cart_page">check your cart</a><br>
 {% endif %}
-<a href = "/logout">logout</a>
+{% if session['account_type']=="buyer" %}
+<form action="/cart_page" method="POST">
+	<button type="submit" class="btn btn-primary"  method ="POST">Cart Page </button><br><br>
+</form>
+{% else %}
+<form action="/addproductspage" method="POST">
+	<button type="submit" class="btn btn-primary"  method ="POST">Add more Products</button><br><br>
+</form>
+
+{% endif %}
  
 {% endblock %}

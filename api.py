@@ -1,12 +1,14 @@
 from flask import Flask, request,render_template,redirect,url_for,session,flash,logging
 from wtforms import Form,StringField,PasswordField,TextAreaField,RadioField,validators
+from wtforms.fields.html5 import EmailField
 from passlib.hash import sha256_crypt
-from models.user_model import user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details,search_products_in_page
-from data import articles
+from models.user_model import remove_from_cart,product_deletion,user_signup,search_user_by_username,Product_addition,check_user,seller_products,buyer_products,cart_details,update_cart_details,search_products_in_page,buy_product
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY']='hello'
+app.config['SERVER_PORT']=5000
+
 
 @app.route("/")
 @app.route("/home")
@@ -52,7 +54,7 @@ class RegistrationForm(Form):
 	
 	name = StringField('Name',[validators.Length(min=4,max=25)])
 	username = StringField('Username',[validators.Length(min=4,max=25)])
-	email = StringField('email',[validators.Length(min=6,max=30)])
+	email =EmailField('Email address', [validators.DataRequired(), validators.Email()])
 	password = PasswordField('Password',[
 		validators.Length(min=4,max=25),
 		validators.DataRequired(),
@@ -60,7 +62,7 @@ class RegistrationForm(Form):
 		])
 	confirm = PasswordField('Confirm Password')
 	account_type = RadioField('Account Type',choices=[('buyer','Buyer'),('seller','Seller')])
-
+	#message has been initialized in _messages.
 
 @app.route("/register",methods=['GET','POST'])
 
@@ -90,15 +92,13 @@ def register():
 
 				session['user_id'] = str(results[1])
 				app.logger.info("SIGNUP SUCCESSFUL")
+				flash('signup Sucessful!','success')
 			return redirect(url_for('dashboard'))
 		
 		else:	
 
-			return 'the username already exists.please go back and enter another username'
-	
-	if ("user_id" in session.keys()):
-
-		return 'You can\'t register while you\'re logged in. Go Back'
+			flash('the username already exists.please go back and enter another username','danger')
+			return(redirect(url_for('register')))
 	else:
 
 		return render_template("register.html",form=form)
@@ -127,7 +127,7 @@ def login():
 			session['account_type']=existing_user['account_type']
 			session['username']=existing_user['username']
 		
-
+			flash('Login Sucessful!','success')
 			return redirect(url_for('dashboard'))
 
 
@@ -153,7 +153,6 @@ def addproductspage():
 	return render_template('addproducts.html')
 
 
-
 @app.route('/addproducts', methods=["POST"])
 def addproducts():
 	product_info={}
@@ -164,17 +163,26 @@ def addproducts():
 	product_info["username"] =session["username"]
 	results =Product_addition(product_info)
 
-	return 'product added'
+	flash('product added!','success')
+	return(redirect(url_for('products')))
 
+@app.route('/remove',methods =['GET','POST'])
+
+def removeproducts():
+	product_id = request.form["product_id"]
+	product_deletion(product_id)
+	return redirect((url_for('products')))
 
 @app.route("/products", methods=['POST','GET'])
 
 def products():
-	if session["account_type"] =="seller":
-		result = seller_products(session["user_id"])
-	else:
-		result = buyer_products()
-	return render_template("products.html" ,result=result)
+	if request.method=='GET' or request.method=='POST':
+
+		if session["account_type"] =="seller":
+			result = seller_products(session["user_id"])
+		else:
+			result = buyer_products()
+		return render_template("products.html" ,result=result[0],isproducts=result[1])
 
 
 @app.route("/searchproducts", methods=["POST"])
@@ -185,7 +193,7 @@ def search_products():
 	search = search_products_in_page(word)
 
 	if search is None:
-		return "No products found"
+		return render_template("searchproducts.html",error="No products found")
 
 	else:
 
@@ -195,16 +203,18 @@ def search_products():
 
 
 
-@app.route('/logout')
+@app.route('/logout',methods=['GET','POST'])
 def logout():
    # remove the username from the session if it is there
-   session.pop('user_id', None)
-   return redirect(url_for('home'))
+   #session.pop('user_id', None)
+	if session:
+		session.clear()
+		flash('You have logged out','success')
+		return redirect(url_for('home'))
 
-
-
-
-
+	else:
+		flash('You have not logged in yet','success')
+		return redirect(url_for('home'))	
 
 @app.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
@@ -213,29 +223,47 @@ def add_to_cart():
 	quantity=int(request.form["quantity"])
 	price=int(request.form["price"])
 	session["order_total"]=update_cart_details(session["user_id"],product_id,quantity,price)
-
+	flash('Product has been added to cart','success')
 	return redirect(url_for("cart_page"))
 
-@app.route('/cart_page')
+@app.route("/remove_from_cart",methods=['POST'])
+
+def remove_cart():
+
+	product_id =request.form["product_id"]
+	quantity=int(request.form["quantity"])
+	price=int(request.form["price"])
+	total =remove_from_cart(session["user_id"],product_id,quantity,price)
+	session['order_total'] = total[0]
+	if total[1] is True:
+		cart= cart_details(session["user_id"])
+		cart_value=cart[0] 
+		quantity=cart[1]
+		return render_template("cart_page.html",cart=zip(cart_value,quantity),order_total=session["order_total"],msg='product has been removed from cart')
+	else:
+		return render_template("cart_page.html",cart='None',order_total=session["order_total"],msg='No products in your cart.')
+
+@app.route('/cart_page',methods=['GET','POST'])
 def cart_page():
 	cart= cart_details(session["user_id"])
-	return render_template("cart_page.html",cart=cart,order_total=session["order_total"])
+	if cart[0]=='None':
+		session['order_total']=cart[2]
+		return render_template("cart_page.html",cart=cart[0],order_total=session["order_total"])	
+	else:
 
-@app.route('/articles')
-def Articles():
+		cart_value=cart[0] 
+		quantity=cart[1]
+		session['order_total']=cart[2]
+		return render_template("cart_page.html",cart=zip(cart_value,quantity),order_total=session["order_total"])
 
-	Articles=articles()
+@app.route('/buy',methods=['POST'])
 
-	return render_template("articles.html",articles=Articles)
+def buy():
 
-@app.route('/article/<string:id>')
-
-# note the change in the decorator above, article not articles
-#the ID will be of type string and be fed into the url 
-
-def Article(id):
-
-	return render_template("article.html",id=id)
+	cart= cart_details(session["user_id"])
+	buy_product(session["user_id"])
+	mess='Congratulations,your product will be delivered, free, to your house!(not really)'
+	return render_template('purchase.html',cart=zip(cart[0],cart[1]),msg=mess)
 
 
 if(__name__ == "__main__"):

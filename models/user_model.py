@@ -31,6 +31,11 @@ def Product_addition(product_info):
 
 	return True
 
+def product_deletion(product_id):
+	
+	filter_query = {"_id" : ObjectId(product_id)}
+	db['products'].remove(filter_query)
+
 
 def search_user_by_username(username):
 	filter_query = {'username' :username}
@@ -56,35 +61,53 @@ def seller_products(user_id):
 	results = db["products"].find(filter_query)
 	for post in results:
 		ans.append(post)
-		#ans =list(results)
-	return ans
+	if not ans:
+		return (ans,'no')
+
+	else:
+
+		return(ans, 'yes')
 
 def buyer_products():
 	ans =[]
-	result = db["products"].find({})
-	#you can also use $natural to skip a step in the above find() method which gives you the order
-	#you entered. but with natural, it just gives the op the way it has been stored in memory so time less
-
-	#result=db["products"].find().sort([('$natual')])	
+	result = db["products"].find({})	
 	for post in result:
 		ans.append(post)
-	return ans
 
+	if not ans:
+		return (ans,'no')
+
+	else:
+
+		return(ans, 'yes')
 
 	
 def cart_details(user_id):
 	results =[]
-	
+	quantity=[]
 	filter_query1 = {"_id":ObjectId(user_id)}
 	result = db["users"].find_one(filter_query1)
 	cart_list=result["cart"]
-	total_price=None
+	total=0
 
-	for item in cart_list:
-		filter_query2 = {"_id":ObjectId(item["product_id"])}
-		results.append(db["products"].find_one(filter_query2))
+	if not cart_list:
 
-	return results	
+		return('None','There is nothing in your cart',total)
+
+	else:
+
+		for item in cart_list:
+			filter_query2 = {"_id":ObjectId(item["product_id"])}
+			results.append(db["products"].find_one(filter_query2))
+			quantity.append(item['quantity'])
+		
+		user_info = db["users"].find_one({"_id":ObjectId(user_id)})	
+		cart_dict = user_info.get("cart")
+
+		for dict1 in cart_dict:
+			total+=dict1["price"]*dict1["quantity"]
+		return (results,quantity,total)
+
 
 def update_cart_details(user_id,product_id,quantity,price):
 
@@ -119,13 +142,49 @@ def update_cart_details(user_id,product_id,quantity,price):
 
 	return total
 
-def remove_item(product_id,user_id):
-    user_info = db['users'].find_one({"_id":ObjectId(user_id)})
-    cart_dict = user_info['cart']
-    cart_dict.pop(product_id)
-    db["users"].update({"_id": ObjectId(user_id)},{"$unset": {"cart."+product_id: ""}})
+def remove_from_cart(user_id,product_id,quantity,price):
 
-    return True		 
+
+	user_info = db["users"].find_one({"_id":ObjectId(user_id)})
+	cart_dict = user_info.get("cart")
+	total =0 
+
+	for dict1 in cart_dict:
+
+		if dict1["product_id"]==product_id:
+
+
+			if dict1["quantity"]==quantity:
+				db["users"].update({"_id":ObjectId(user_id)},{"$pull":{"cart":{"product_id":product_id,"quantity":quantity,"price":price }}})
+
+				user_info = db["users"].find_one({"_id":ObjectId(user_id)})	
+				cart_dict = user_info.get("cart")
+				
+				if not cart_dict:
+						return (total,False)
+				else:
+
+					for dict1 in cart_dict:
+						if (dict1["price"] is None) or (dict1["quantity"] is None):
+							total=0
+						else: 
+							total+=dict1["price"]*dict1["quantity"]
+
+					return (total,True)
+				
+			else:
+				db["users"].update({"_id" : ObjectId(user_id),"cart.product_id":product_id},{ '$inc':{ 'cart.$.quantity':-quantity}})
+				user_info = db["users"].find_one({"_id":ObjectId(user_id)})	
+				cart_dict = user_info.get("cart")
+
+				for dict1 in cart_dict:
+
+					total+=dict1["price"]*dict1["quantity"]
+
+				return (total,True)
+			
+	
+
 
 def search_products_in_page(search):
 
@@ -133,3 +192,10 @@ def search_products_in_page(search):
 	filter_query = {"product name" : search}
 	result = db['products'].find(filter_query)
 	return result
+
+def buy_product(user_id):
+
+	db["users"].update({"_id":ObjectId(user_id)},{"$unset":{ "cart":1}})
+	db["users"].update({"_id":ObjectId(user_id)},{"$set":{ "cart":[]}})
+
+	return True

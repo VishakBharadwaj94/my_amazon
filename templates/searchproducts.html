@@ -3,10 +3,10 @@
 {% block body %}
 
 	{% for dict in search %} 
-	<ul>
-	<b><li>name:{{ dict["product name"] }}</li></b><br>
-		<li>prce: {{ dict["price"] }}</li><br>
-		<li>Description: {{ dict["description"] }}</li><br>
+	<ul class="list-group">
+	<b><li class="list-group-item">name:{{ dict["product name"] }}</li></b><br>
+		<li class="list-group-item">prce: {{ dict["price"] }}</li><br>
+		<li class="list-group-item">Description: {{ dict["description"] }}</li><br>
 	</ul>
 	{% if session['account_type']=="buyer" %}
 		<form action="/add_to_cart" method="POST">

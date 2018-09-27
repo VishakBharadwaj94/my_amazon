@@ -16,13 +16,19 @@
             <li ><a href="/home">Home</a></li>
             <li><a href="/about">About</a></li>
             <li><a href="/contact">Contact</a></li>
-            <li><a href="articles">Articles</a></li>
             <li><a href="/login">Log In</a></li>
-            <li><a href="/logout"> Log Out</a></li>
+            <li><a href="/dashboard">Dashboard</a></li>
           </ul>
 
           <ul class="nav navbar-nav navbar-right">
+            {% if session['username'] %}
+              {% if session['account_type']=='buyer' %}
+            <li><a href="/cart_page"> Cart </a></li>
+              {% endif %}
+            {% else %}
             <li><a href="/register"> Register </a></li>
+            {% endif %}
+            <li><a href="/logout"> Log Out</a></li>
           </ul>
           
         </div><!--/.nav-collapse -->
