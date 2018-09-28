@@ -1,6 +1,7 @@
 {% extends 'layout.html'%}
 
 {% block body %}
+{% if search %}
 
 	{% for dict in search %} 
 	<ul class="list-group">
@@ -15,5 +16,9 @@
 		<input type=submit value="Add to cart"> <br>	
 		</form>
 	{% endif %}
-	{% endfor %}	
+	{% endfor %}
+{% else %}
+	<h2>Sorry, no products match your search results</h2>
+
+{% endif %}	
 {% endblock %}
