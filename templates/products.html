@@ -15,12 +15,15 @@
 <ul>
 {% if isproducts=='no' %}
 	{% if session['account_type']=='buyer' %}
-<h2>There are no products on sale yet!</h2>
+		<h2>There are no products on sale yet!</h2>
+	{% else %}
+		<h2>You have not added any products yet!</h2>
 	{% endif %}
-<h2>You have not added any products yet!</h2>
+	{% if session['account_type']=='seller' %}
 <form action='/addproductspage' name="productspage" method="POST">
-<button type="submit" class="btn btn-primary"> Add Product </button>
+<button type="submit" class="btn btn-primary"> Add your Product </button>
 </form>
+	{% endif %}
 {% endif %}
 {% if result %}
 {% for dict in result %}
@@ -51,10 +54,9 @@
 	<button type="submit" class="btn btn-primary"  method ="POST">Cart Page </button><br><br>
 </form>
 {% else %}
-<form action="/addproductspage" method="POST">
-	<button type="submit" class="btn btn-primary"  method ="POST">Add more Products</button><br><br>
-</form>
-
+<form action="/addproductspage" name="products" method="POST">
+		<button type="submit" class="btn btn-primary"> Add New Product    </button>
+	</form>
 {% endif %}
  
 {% endblock %}

@@ -117,7 +117,7 @@ def login():
 		existing_user = search_user_by_username(inbound_username)
 		if (existing_user is None):
 			app.logger.info("NO USER")
-			error="Username or Password is incorrect!"
+			error="Username or Password is incorrect! Username is case sensitive"
 			return render_template('login.html',error=error)
 
 		elif(sha256_crypt.verify(request.form['password'],existing_user['password'])):
@@ -157,7 +157,8 @@ def addproductspage():
 def addproducts():
 	product_info={}
 	product_info["product name"] = request.form["name"]
-	product_info["price"] = int(request.form["price"])
+	price = request.form["price"].replace(',','')
+	product_info["price"] = int(price)
 	product_info["description"] =  request.form["product_description"]
 	product_info["user_id"]=session['user_id']
 	product_info["username"] =session["username"]
@@ -191,13 +192,9 @@ def search_products():
 
 	word = request.form["search"]
 	search = search_products_in_page(word)
-
-	if search is None:
-		return render_template("searchproducts.html",error="No products found")
-
-	else:
-
-		return render_template("searchproducts.html",search=search)
+	if search.count()==0:
+		isSearch = None
+	return render_template("searchproducts.html",search=search,isSearch=isSearch)
 
 	
 
